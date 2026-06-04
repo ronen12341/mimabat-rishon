@@ -62,7 +62,7 @@
     box-shadow:0 10px 30px rgba(0,0,0,.5); display:flex; flex-direction:column; justify-content:flex-end;
     will-change:transform; user-select:none;
   }
-  .swipecard .photo{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:90px}
+  .swipecard .photo{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:90px; background-size:cover; background-position:center}
   .swipecard .grad{position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,.88) 0%, transparent 58%)}
   .swipecard .info{position:relative; padding:20px; z-index:2}
   .swipecard .info h2{margin:0; font-size:26px}
@@ -72,6 +72,12 @@
   .stamp{position:absolute; top:30px; z-index:3; font-size:30px; font-weight:900; padding:6px 14px; border-radius:10px; border:4px solid; opacity:0}
   .stamp.like{right:20px; color:var(--green); border-color:var(--green); transform:rotate(18deg)}
   .stamp.nope{left:20px; color:var(--pink); border-color:var(--pink); transform:rotate(-18deg)}
+  .stamp.block{left:50%; bottom:40px; top:auto; transform:translateX(-50%); color:#ff5252; border-color:#ff5252}
+  .round.block{color:#ff5252}
+  .photopick{position:relative; align-self:center}
+  .photopick .ppimg{width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid var(--pink); display:block}
+  .photopick .ppedit{position:absolute; bottom:0; inset-inline-end:0; background:var(--pink); color:#fff; width:34px; height:34px; border-radius:50%; font-size:16px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.4)}
+  .photopick input{display:none}
 
   .actions{display:flex; justify-content:center; gap:22px; padding:8px 0 16px}
   .round{width:62px; height:62px; border-radius:50%; background:var(--card); border:1px solid var(--line); font-size:26px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,.4)}
@@ -214,6 +220,17 @@
         </div>
       </section>
 
+      <!-- משיכה (טינדר לפי תמונות) -->
+      <section id="pgAttract" class="page hidden">
+        <div class="deck" id="deckA"></div>
+        <div class="actions" id="deckActionsA">
+          <button class="round nope" id="bNopeA" title="לא">✕</button>
+          <button class="round block" id="bBlockA" title="חסימה">🚫</button>
+          <button class="round star" id="bSuperA" title="סופר-לייק">★</button>
+          <button class="round like" id="bLikeA" title="מושך">♥</button>
+        </div>
+      </section>
+
       <!-- מבחנים -->
       <section id="pgTests" class="page hidden">
         <div class="listwrap">
@@ -245,7 +262,12 @@
       <!-- פרופיל -->
       <section id="pgProfile" class="page hidden">
         <div class="profile">
-          <div class="avatarbig" id="pfAvatar">🙂</div>
+          <label class="photopick" id="photoPick">
+            <div class="avatarbig" id="pfAvatar">🙂</div>
+            <span class="ppedit">📷</span>
+            <input type="file" id="pfPhotoInput" accept="image/*">
+          </label>
+          <p class="note" style="margin:0">לחצו על התמונה כדי להעלות תמונת פרופיל אמיתית (אופציונלי). היא תוצג בכרטיסי ההחלקה.</p>
           <div class="field"><label>שם</label><input id="pfName"></div>
           <div class="row2">
             <div class="field"><label>גיל</label><input id="pfAge" type="number" min="18" max="99"></div>
@@ -267,6 +289,7 @@
 
     <nav class="tabs">
       <button data-tab="Discover" class="active"><span class="ico">🔥</span>גילוי</button>
+      <button data-tab="Attract"><span class="ico">📸</span>משיכה</button>
       <button data-tab="Tests"><span class="ico">🧪</span>מבחנים</button>
       <button data-tab="Matches"><span class="ico">💞</span>התאמות</button>
       <button data-tab="Profile"><span class="ico">👤</span>פרופיל</button>
@@ -586,7 +609,7 @@ const LocalDB={
     const u=this._u(); if(u[email]) throw new Error("כבר קיים חשבון עם האימייל הזה.");
     const uid="me_"+Date.now();
     u[email]={uid,email,pass:d.pass,
-      profile:{id:uid,name:d.name.trim(),age:parseInt(d.age)||25,gender:d.gender,seek:d.seek,bio:"",avatar:"🙂"},results:{}};
+      profile:{id:uid,name:d.name.trim(),age:parseInt(d.age)||25,gender:d.gender,seek:d.seek,bio:"",avatar:"🙂",photo:""},results:{}};
     this._s(u); Store.lsSet("session",email); this.email=email; Store.uid=uid;
     return {uid,profile:u[email].profile,results:{}};
   },
@@ -624,7 +647,7 @@ const LocalDB={
 function makeCloudDB(auth, db, A, F){
   return {
     cloud:true, uid:null,
-    _toPerson(id,u){ return {id,name:u.name,age:u.age,gender:u.gender,bio:u.bio||"",avatar:u.avatar||"🙂",scores:u.results||{}}; },
+    _toPerson(id,u){ return {id,name:u.name,age:u.age,gender:u.gender,bio:u.bio||"",avatar:u.avatar||"🙂",photo:u.photo||"",scores:u.results||{}}; },
     async _loadSelf(){ const s=await F.getDoc(F.doc(db,"users",this.uid)); const data=s.exists()?s.data():{};
       const {results,createdAt,...profile}=data; profile.id=this.uid; return {uid:this.uid,profile,results:results||{}}; },
     async _mySwipes(){ const s=await F.getDoc(F.doc(db,"swipes",this.uid)); return (s.exists()&&s.data().targets)||{}; },
@@ -633,7 +656,7 @@ function makeCloudDB(auth, db, A, F){
       if(!d.name.trim()||!email||d.pass.length<4) throw new Error("מלאו את כל השדות (סיסמה 4+ תווים).");
       const cred=await A.createUserWithEmailAndPassword(auth,email,d.pass);
       this.uid=cred.user.uid; Store.uid=this.uid;
-      const profile={id:this.uid,name:d.name.trim(),age:parseInt(d.age)||25,gender:d.gender,seek:d.seek,bio:"",avatar:"🙂"};
+      const profile={id:this.uid,name:d.name.trim(),age:parseInt(d.age)||25,gender:d.gender,seek:d.seek,bio:"",avatar:"🙂",photo:""};
       await F.setDoc(F.doc(db,"users",this.uid),{...profile,results:{},createdAt:Date.now()});
       return {uid:this.uid,profile,results:{}};
     },
@@ -641,7 +664,7 @@ function makeCloudDB(auth, db, A, F){
       this.uid=cred.user.uid; Store.uid=this.uid; return this._loadSelf(); },
     async autoSession(){ if(!auth.currentUser) return null; this.uid=auth.currentUser.uid; Store.uid=this.uid; return this._loadSelf(); },
     async logOut(){ await A.signOut(auth); this.uid=null; },
-    async saveProfile(p){ await F.updateDoc(F.doc(db,"users",this.uid),{name:p.name,age:p.age,gender:p.gender,seek:p.seek,bio:p.bio,avatar:p.avatar}); },
+    async saveProfile(p){ await F.updateDoc(F.doc(db,"users",this.uid),{name:p.name,age:p.age,gender:p.gender,seek:p.seek,bio:p.bio,avatar:p.avatar,photo:p.photo||""}); },
     async saveResults(r){ await F.updateDoc(F.doc(db,"users",this.uid),{results:r}); },
     async getCandidates(me){
       const sw=await this._mySwipes();
@@ -730,7 +753,7 @@ async function buildDeck(){
     deckQueue.forEach(p=>PEOPLE[p.id]=p);
     deckQueue.reverse();
   }catch(e){ console.warn("getCandidates",e); deckQueue=[]; }
-  renderDeck();
+  renderDecks();
 }
 
 async function loadMatches(){
@@ -741,56 +764,76 @@ async function loadMatches(){
   renderMatches();
 }
 
-function renderDeck(){
-  const deck=$("#deck"); deck.innerHTML="";
-  $("#testBanner").classList.toggle("hidden", testsDone()>0);
+function personMedia(p,idx){
+  if(p.photo) return `<div class="photo" style="background-image:url('${p.photo}')"></div>`;
+  return `<div class="photo" style="background:linear-gradient(160deg,${CARD_COLORS[idx%CARD_COLORS.length]},#160a10)">${p.avatar}</div>`;
+}
+function renderDeck(sel,mode){
+  const deck=$(sel); if(!deck) return; deck.innerHTML="";
+  const actionsSel = sel==="#deckA" ? "#deckActionsA" : "#deckActions";
+  if(sel==="#deck") $("#testBanner").classList.toggle("hidden", testsDone()>0);
   if(deckQueue.length===0){
     deck.innerHTML=`<div class="empty"><div class="big">🎉</div><b>סיימת את כולם!</b><p>אין כרגע אנשים נוספים. חזרו מאוחר יותר.</p></div>`;
-    $("#deckActions").style.visibility="hidden"; return;
+    $(actionsSel).style.visibility="hidden"; return;
   }
-  $("#deckActions").style.visibility="visible";
+  $(actionsSel).style.visibility="visible";
   deckQueue.slice(-3).forEach((p,i,arr)=>{
     const top=i===arr.length-1;
     const idx=hashId(p.id);
-    const comp=compatibility(p.scores);
-    const pill = comp!=null
-      ? `<div class="matchpill">💎 ${comp}% התאמה לפי צוות המומחים</div>`
-      : `<div class="matchpill">🧪 השלימו מבחנים לחישוב התאמה</div>`;
+    let pill="";
+    if(mode==="compat"){
+      const comp=compatibility(p.scores);
+      pill = comp!=null
+        ? `<div class="matchpill">💎 ${comp}% התאמה לפי צוות המומחים</div>`
+        : `<div class="matchpill">🧪 השלימו מבחנים לחישוב התאמה</div>`;
+    }
     const el=document.createElement("div"); el.className="swipecard";
     const depth=arr.length-1-i;
     el.style.transform=`scale(${1-depth*0.04}) translateY(${depth*10}px)`; el.style.zIndex=i;
     el.innerHTML=`
-      <div class="photo" style="background:linear-gradient(160deg,${CARD_COLORS[idx%CARD_COLORS.length]},#160a10)">${p.avatar}</div>
+      ${personMedia(p,idx)}
       <div class="grad"></div>
-      <div class="stamp like">אהבתי</div><div class="stamp nope">לא</div>
+      <div class="stamp like">מושך</div><div class="stamp nope">לא</div><div class="stamp block">חסימה</div>
       <div class="info">${pill}<h2>${p.name} <span class="age">${p.age}</span></h2><p>${p.bio}</p></div>`;
     deck.appendChild(el);
     if(top) makeDraggable(el,p);
   });
 }
+/* רענון שני המסכים החולקים את אותה ערימה */
+function renderDecks(){ renderDeck("#deck","compat"); renderDeck("#deckA","photo"); }
 
 function makeDraggable(el,person){
-  let sx=0,dx=0,dy=0,drag=false;
-  const like=el.querySelector(".stamp.like"), nope=el.querySelector(".stamp.nope");
-  const down=e=>{ drag=true; const t=e.touches?e.touches[0]:e; sx=t.clientX; el.style.transition="none"; };
-  const move=e=>{ if(!drag) return; const t=e.touches?e.touches[0]:e; dx=t.clientX-sx;
-    el.style.transform=`translateX(${dx}px) rotate(${dx/18}deg)`;
-    like.style.opacity=Math.max(0,dx/120); nope.style.opacity=Math.max(0,-dx/120);
+  let sx=0,sy=0,dx=0,dy=0,drag=false;
+  const like=el.querySelector(".stamp.like"), nope=el.querySelector(".stamp.nope"), block=el.querySelector(".stamp.block");
+  const down=e=>{ drag=true; dx=0; dy=0; const t=e.touches?e.touches[0]:e; sx=t.clientX; sy=t.clientY; el.style.transition="none"; };
+  const move=e=>{ if(!drag) return; const t=e.touches?e.touches[0]:e; dx=t.clientX-sx; dy=t.clientY-sy;
+    if(Math.abs(dy)>Math.abs(dx) && dy>0){            // החלקה למטה = חסימה
+      el.style.transform=`translateY(${dy}px)`;
+      if(block) block.style.opacity=Math.max(0,dy/120);
+      like.style.opacity=0; nope.style.opacity=0;
+    } else {
+      el.style.transform=`translateX(${dx}px) rotate(${dx/18}deg)`;
+      like.style.opacity=Math.max(0,dx/120); nope.style.opacity=Math.max(0,-dx/120);
+      if(block) block.style.opacity=0;
+    }
     if(e.cancelable) e.preventDefault(); };
   const up=()=>{ if(!drag) return; drag=false; el.style.transition="transform .35s ease,opacity .35s ease";
-    if(dx>110){ fly(el,1); decide(person,"like"); }
+    if(Math.abs(dy)>Math.abs(dx) && dy>110){ flyDown(el); decide(person,"block"); }
+    else if(dx>110){ fly(el,1); decide(person,"like"); }
     else if(dx<-110){ fly(el,-1); decide(person,"nope"); }
-    else { el.style.transform=""; like.style.opacity=0; nope.style.opacity=0; } };
+    else { el.style.transform=""; like.style.opacity=0; nope.style.opacity=0; if(block) block.style.opacity=0; } };
   el.addEventListener("touchstart",down,{passive:true});
   el.addEventListener("touchmove",move,{passive:false});
   el.addEventListener("touchend",up);
   el.addEventListener("mousedown",down); window.addEventListener("mousemove",move); window.addEventListener("mouseup",up);
 }
 function fly(el,dir){ el.style.transform=`translateX(${dir*600}px) rotate(${dir*40}deg)`; el.style.opacity=0; }
+function flyDown(el){ el.style.transform=`translateY(720px)`; el.style.opacity=0; }
 
 async function decide(person,verdict){
   deckQueue=deckQueue.filter(p=>p.id!==person.id);
-  setTimeout(renderDeck,360);
+  setTimeout(renderDecks,360);
+  if(verdict==="block") toast("נחסם — לא יוצג שוב 🚫");
   const comp=compatibility(person.scores);
   try{
     const r=await DB.recordSwipe(person.id,verdict,comp);
@@ -828,7 +871,10 @@ function renderMatches(){
     if(j&&j.decision==="stay"&&j.partnerStay) sub="💞 ביחד!";
     else if(j&&j.decision) sub="💔 נפרדתם";
     const row=document.createElement("div"); row.className="match";
-    row.innerHTML=`<div class="av">${p.avatar}</div>
+    const av = p.photo
+      ? `<div class="av" style="background-image:url('${p.photo}');background-size:cover;background-position:center;color:transparent"></div>`
+      : `<div class="av">${p.avatar}</div>`;
+    row.innerHTML=`${av}
       <div class="meta"><b>${p.name}, ${p.age}</b><span>${sub}</span></div>
       ${comp!=null?`<div class="score">${comp}%</div>`:""}`;
     row.onclick=()=>openJourney(id);
@@ -983,15 +1029,39 @@ function finishQuiz(){
 /* ---------- פרופיל ---------- */
 function fillProfileForm(){
   $("#pfName").value=ME.name||""; $("#pfAge").value=ME.age||25;
-  $("#pfBio").value=ME.bio||""; $("#pfAvatar").textContent=ME.avatar||"🙂";
-  $("#pfSeek").value=ME.seek||"הכל";
+  $("#pfBio").value=ME.bio||""; $("#pfSeek").value=ME.seek||"הכל";
+  renderProfilePhoto();
+}
+function renderProfilePhoto(){
+  const av=$("#pfAvatar");
+  if(ME.photo){ av.textContent=""; av.style.backgroundImage=`url('${ME.photo}')`; av.style.backgroundSize="cover"; av.style.backgroundPosition="center"; }
+  else { av.style.backgroundImage=""; av.textContent=ME.avatar||"🙂"; }
+}
+/* העלאת תמונת פרופיל — דחיסה ל-dataURL קטן שנשמר עם הפרופיל */
+function onPhotoPick(e){
+  const file=e.target.files&&e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=480; let w=img.width,h=img.height;
+      const scale=Math.min(1,max/Math.max(w,h)); w=Math.round(w*scale); h=Math.round(h*scale);
+      const c=document.createElement("canvas"); c.width=w; c.height=h;
+      c.getContext("2d").drawImage(img,0,0,w,h);
+      ME.photo=c.toDataURL("image/jpeg",0.8);
+      renderProfilePhoto();
+      toast("תמונה נטענה — שמרו פרופיל לאישור");
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 function buildAvatarPicker(){
   const wrap=$("#avatarPick"); wrap.innerHTML="";
   AVATARS.forEach(a=>{
     const b=document.createElement("button"); b.textContent=a;
     if(a===ME.avatar) b.classList.add("sel");
-    b.onclick=()=>{ ME.avatar=a; $$("#avatarPick button").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); $("#pfAvatar").textContent=a; };
+    b.onclick=()=>{ ME.avatar=a; $$("#avatarPick button").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); renderProfilePhoto(); };
     wrap.appendChild(b);
   });
 }
@@ -1006,9 +1076,11 @@ function saveProfile(){
 /* ---------- טאבים ---------- */
 function switchTab(name){
   $$("#mainApp nav.tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));
-  ["Discover","Tests","Quiz","Matches","Journey","Profile"].forEach(p=>hide("#pg"+p));
+  ["Discover","Attract","Tests","Quiz","Matches","Journey","Profile"].forEach(p=>hide("#pg"+p));
   show("#pg"+name);
   if(name==="Tests") renderTests();
+  if(name==="Discover") renderDeck("#deck","compat");
+  if(name==="Attract") renderDeck("#deckA","photo");
 }
 
 /* ---------- Firebase (אופציונלי) ---------- */
@@ -1068,13 +1140,20 @@ function bind(){
   $("#bNope").onclick=()=>swipeBtn("nope");
   $("#bLike").onclick=()=>swipeBtn("like");
   $("#bSuper").onclick=()=>swipeBtn("super");
+  $("#bNopeA").onclick=()=>swipeBtn("nope","#deckA");
+  $("#bLikeA").onclick=()=>swipeBtn("like","#deckA");
+  $("#bSuperA").onclick=()=>swipeBtn("super","#deckA");
+  $("#bBlockA").onclick=()=>swipeBtn("block","#deckA");
+  $("#pfPhotoInput").onchange=onPhotoPick;
   $$("#mainApp nav.tabs button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
 }
-function swipeBtn(verdict){
+function swipeBtn(verdict,sel){
+  sel=sel||"#deck";
   if(deckQueue.length===0) return;
   const person=deckQueue[deckQueue.length-1];
-  const el=$("#deck").querySelector(".swipecard:last-child");
-  if(el){ el.style.transition="transform .35s ease,opacity .35s ease"; fly(el,verdict==="nope"?-1:1); }
+  const el=$(sel).querySelector(".swipecard:last-child");
+  if(el){ el.style.transition="transform .35s ease,opacity .35s ease";
+    if(verdict==="block") flyDown(el); else fly(el,verdict==="nope"?-1:1); }
   decide(person,verdict);
 }
 
