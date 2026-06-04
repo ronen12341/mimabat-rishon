@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#c2185b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>ממבט ראשון 💍</title>
+<style>
+  :root{
+    --pink:#e91e63; --pink2:#ff6090; --gold:#d4af37; --green:#2ecc71; --bg:#11070d; --card:#241019;
+    --muted:#b08a9a; --line:#3a2230; --text:#fbeef4;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;overscroll-behavior:none}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Heebo",Arial,sans-serif;
+    background:var(--bg); color:var(--text);
+    display:flex; justify-content:center;
+    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  }
+  #app{width:100%; max-width:480px; height:100vh; height:100dvh; display:flex; flex-direction:column; position:relative; overflow:hidden}
+  .hidden{display:none !important}
+  button{font-family:inherit; cursor:pointer; border:none}
+  input,select,textarea{font-family:inherit}
+
+  header{display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--line)}
+  .logo{font-weight:800; font-size:22px; background:linear-gradient(45deg,var(--pink),var(--gold)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .cloudbadge{font-size:12px; padding:4px 10px; border-radius:20px; background:var(--card); border:1px solid var(--line); color:var(--muted)}
+  .cloudbadge.on{color:var(--green); border-color:var(--green)}
+
+  .auth{flex:1; display:flex; flex-direction:column; justify-content:center; padding:32px 28px; gap:14px; overflow-y:auto}
+  .auth h1{font-size:38px; margin:0 0 2px; background:linear-gradient(45deg,var(--pink),var(--gold)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .auth p.sub{color:var(--muted); margin:0 0 14px; line-height:1.5}
+  .field{display:flex; flex-direction:column; gap:6px}
+  .field label{font-size:13px; color:var(--muted)}
+  .field input,.field select,.field textarea{
+    background:var(--card); border:1px solid var(--line); color:var(--text);
+    padding:14px; border-radius:12px; font-size:16px; width:100%
+  }
+  .row2{display:flex; gap:10px}
+  .row2 .field{flex:1}
+  .btn{background:linear-gradient(45deg,var(--pink),var(--pink2)); color:#fff; padding:15px; border-radius:30px; font-size:17px; font-weight:700; width:100%}
+  .btn.secondary{background:none; border:1px solid var(--line); color:var(--text)}
+  .btn.gold{background:linear-gradient(45deg,var(--gold),#f0c75e); color:#3a2230}
+  .link{color:var(--pink); text-align:center; background:none; font-size:15px; padding:8px}
+  .err{color:#ff8a8a; font-size:14px; min-height:18px; text-align:center}
+
+  nav.tabs{display:flex; border-top:1px solid var(--line); background:var(--bg)}
+  nav.tabs button{flex:1; background:none; color:var(--muted); padding:10px 0 14px; font-size:11px; display:flex; flex-direction:column; align-items:center; gap:3px}
+  nav.tabs button.active{color:var(--pink)}
+  nav.tabs .ico{font-size:22px}
+  nav.tabs .dot{position:absolute; transform:translate(14px,-4px); width:8px; height:8px; background:var(--gold); border-radius:50%}
+
+  main{flex:1; position:relative; overflow:hidden}
+  .page{position:absolute; inset:0; display:flex; flex-direction:column; overflow-y:auto}
+
+  .deck{flex:1; position:relative; margin:14px}
+  .swipecard{
+    position:absolute; inset:0; background:var(--card); border-radius:20px; overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,.5); display:flex; flex-direction:column; justify-content:flex-end;
+    will-change:transform; user-select:none;
+  }
+  .swipecard .photo{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:90px}
+  .swipecard .grad{position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,.88) 0%, transparent 58%)}
+  .swipecard .info{position:relative; padding:20px; z-index:2}
+  .swipecard .info h2{margin:0; font-size:26px}
+  .swipecard .info .age{font-weight:400}
+  .swipecard .info p{margin:6px 0 0; color:#f0dde6; font-size:15px}
+  .matchpill{display:inline-flex; align-items:center; gap:6px; margin-bottom:10px; background:rgba(212,175,55,.18); border:1px solid var(--gold); color:var(--gold); padding:5px 12px; border-radius:20px; font-size:13px; font-weight:700}
+  .stamp{position:absolute; top:30px; z-index:3; font-size:30px; font-weight:900; padding:6px 14px; border-radius:10px; border:4px solid; opacity:0}
+  .stamp.like{right:20px; color:var(--green); border-color:var(--green); transform:rotate(18deg)}
+  .stamp.nope{left:20px; color:var(--pink); border-color:var(--pink); transform:rotate(-18deg)}
+
+  .actions{display:flex; justify-content:center; gap:22px; padding:8px 0 16px}
+  .round{width:62px; height:62px; border-radius:50%; background:var(--card); border:1px solid var(--line); font-size:26px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,.4)}
+  .round.nope{color:var(--pink)} .round.like{color:var(--green)} .round.star{color:var(--gold); width:50px; height:50px; font-size:20px}
+
+  .empty{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--muted); padding:30px; gap:10px}
+  .empty .big{font-size:60px}
+
+  .listwrap{padding:16px}
+  .listwrap h2{margin:4px 0 14px}
+  .match{display:flex; align-items:center; gap:14px; padding:12px; background:var(--card); border-radius:14px; margin-bottom:10px}
+  .match .av{width:54px; height:54px; border-radius:50%; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:28px; flex-shrink:0}
+  .match .meta{flex:1; min-width:0}
+  .match .meta b{display:block}
+  .match .meta span{color:var(--muted); font-size:13px}
+  .match .score{color:var(--gold); font-weight:800; font-size:15px}
+
+  /* Tests */
+  .testcard{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:12px; display:flex; align-items:center; gap:14px}
+  .testcard .tico{font-size:34px}
+  .testcard .tmeta{flex:1}
+  .testcard .tmeta b{font-size:16px}
+  .testcard .tmeta p{margin:3px 0 0; color:var(--muted); font-size:13px}
+  .badge-done{font-size:12px; color:var(--green); border:1px solid var(--green); border-radius:20px; padding:3px 10px; white-space:nowrap}
+  .badge-todo{font-size:12px; color:var(--gold); border:1px solid var(--gold); border-radius:20px; padding:3px 10px; white-space:nowrap}
+  .progbar{height:6px; background:var(--line); border-radius:6px; overflow:hidden; margin:14px 0}
+  .progbar i{display:block; height:100%; background:linear-gradient(90deg,var(--pink),var(--gold)); width:0}
+
+  /* Quiz runner */
+  .quiz{padding:20px; display:flex; flex-direction:column; gap:18px}
+  .qtop{display:flex; align-items:center; gap:10px}
+  .qtop .back{background:none; color:var(--muted); font-size:22px}
+  .qcount{color:var(--muted); font-size:13px}
+  .qtext{font-size:21px; font-weight:700; line-height:1.4; margin:8px 0}
+  .scale{display:flex; flex-direction:column; gap:10px}
+  .scale button{background:var(--card); border:1px solid var(--line); color:var(--text); padding:15px; border-radius:12px; font-size:16px; text-align:start}
+  .scale button:active{border-color:var(--pink)}
+  .choice button{background:var(--card); border:1px solid var(--line); color:var(--text); padding:15px; border-radius:12px; font-size:16px; text-align:start; width:100%; margin-bottom:10px}
+
+  .profile{padding:22px; display:flex; flex-direction:column; gap:14px}
+  .avatarbig{width:110px; height:110px; border-radius:50%; background:var(--card); align-self:center; display:flex; align-items:center; justify-content:center; font-size:60px; border:3px solid var(--pink)}
+  .emojirow{display:flex; flex-wrap:wrap; gap:8px}
+  .emojirow button{font-size:26px; padding:8px; background:var(--card); border:1px solid var(--line); border-radius:12px}
+  .emojirow button.sel{border-color:var(--pink); background:rgba(233,30,99,.18)}
+  .note{font-size:12px; color:var(--muted); text-align:center; line-height:1.6}
+
+  .modal{position:absolute; inset:0; background:rgba(17,7,13,.94); z-index:50; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:30px; text-align:center}
+  .modal h1{font-size:40px; margin:0; background:linear-gradient(45deg,var(--pink),var(--gold)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .modal .faces{font-size:64px}
+  .modal .bigscore{font-size:54px; font-weight:900; color:var(--gold)}
+  .toast{position:absolute; bottom:80px; left:50%; transform:translateX(-50%); background:var(--card); border:1px solid var(--line); padding:10px 18px; border-radius:20px; font-size:14px; z-index:40; opacity:0; transition:opacity .3s}
+  .toast.show{opacity:1}
+  .banner{margin:14px 14px 0; background:rgba(212,175,55,.12); border:1px solid var(--gold); color:var(--gold); padding:12px 14px; border-radius:12px; font-size:14px; display:flex; gap:10px; align-items:center}
+  .banner button{margin-inline-start:auto; background:var(--gold); color:#3a2230; border-radius:20px; padding:6px 12px; font-weight:700; font-size:13px; white-space:nowrap}
+
+  /* מסע זוגי */
+  .journey{padding:18px; display:flex; flex-direction:column; gap:16px}
+  .jhead{display:flex; align-items:center; gap:10px}
+  .jhead .back{background:none; color:var(--muted); font-size:24px}
+  .jhero{display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center}
+  .jhero .faces{font-size:54px}
+  .jhero h2{margin:0}
+  .jhero .day{color:var(--gold); font-weight:800; font-size:15px}
+  .verdict{background:rgba(212,175,55,.1); border:1px solid var(--gold); border-radius:14px; padding:14px; font-size:14px; line-height:1.6}
+  .verdict b{color:var(--gold)}
+  .stages{display:flex; flex-direction:column; gap:0; margin:4px 0}
+  .stage{display:flex; gap:14px; padding:0 0 6px}
+  .stage .rail{display:flex; flex-direction:column; align-items:center}
+  .stage .bullet{width:34px; height:34px; border-radius:50%; background:var(--card); border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0}
+  .stage.done .bullet{border-color:var(--green); background:rgba(46,204,113,.18)}
+  .stage.cur .bullet{border-color:var(--gold); background:rgba(212,175,55,.2); box-shadow:0 0 0 4px rgba(212,175,55,.12)}
+  .stage .line{flex:1; width:2px; background:var(--line); margin:2px 0}
+  .stage.done .line{background:var(--green)}
+  .stage .sbody{padding-bottom:18px}
+  .stage .sbody b{font-size:16px}
+  .stage .sbody p{margin:3px 0 0; color:var(--muted); font-size:13px}
+  .stage.locked{opacity:.45}
+  .decision{display:flex; gap:12px; margin-top:6px}
+  .decision button{flex:1; padding:15px; border-radius:14px; font-weight:700; font-size:16px}
+  .decision .stay{background:linear-gradient(45deg,var(--green),#27ae60); color:#fff}
+  .decision .leave{background:none; border:1px solid var(--pink); color:var(--pink)}
+  .outcome{text-align:center; padding:16px; border-radius:14px; font-size:16px; font-weight:700}
+  .outcome.together{background:rgba(46,204,113,.15); border:1px solid var(--green); color:var(--green)}
+  .outcome.apart{background:rgba(233,30,99,.12); border:1px solid var(--pink); color:var(--pink)}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- הרשמה -->
+  <section id="authScreen" class="auth">
+    <h1>ממבט ראשון 💍</h1>
+    <p class="sub">בהשראת "חתונה ממבט ראשון". צוות המומחים שלנו מתאים ביניכם — על בסיס מבחנים, לא ניחושים.</p>
+    <div class="field"><label>שם</label><input id="auName" placeholder="איך קוראים לך?" autocomplete="off"></div>
+    <div class="row2">
+      <div class="field"><label>גיל</label><input id="auAge" type="number" min="18" max="99" placeholder="גיל"></div>
+      <div class="field"><label>מין</label>
+        <select id="auGender"><option value="ז">גבר</option><option value="נ">אישה</option><option value="א">אחר</option></select>
+      </div>
+    </div>
+    <div class="field"><label>מחפש/ת</label>
+      <select id="auSeek"><option value="נ">נשים</option><option value="ז">גברים</option><option value="הכל">הכל</option></select>
+    </div>
+    <div class="field"><label>אימייל</label><input id="auEmail" type="email" placeholder="you@email.com" autocomplete="off"></div>
+    <div class="field"><label>סיסמה</label><input id="auPass" type="password" placeholder="••••••••"></div>
+    <div class="err" id="auErr"></div>
+    <button class="btn" id="btnSignup">יצירת חשבון</button>
+    <button class="link" id="btnToLogin">כבר יש לך חשבון? התחברות</button>
+  </section>
+
+  <section id="loginScreen" class="auth hidden">
+    <h1>ברוכים השבים</h1>
+    <p class="sub">התחברו כדי להמשיך בתהליך.</p>
+    <div class="field"><label>אימייל</label><input id="liEmail" type="email" placeholder="you@email.com" autocomplete="off"></div>
+    <div class="field"><label>סיסמה</label><input id="liPass" type="password" placeholder="••••••••"></div>
+    <div class="err" id="liErr"></div>
+    <button class="btn" id="btnLogin">התחברות</button>
+    <button class="link" id="btnToSignup">חדש/ה כאן? יצירת חשבון</button>
+  </section>
+
+  <!-- אפליקציה -->
+  <div id="mainApp" class="hidden" style="display:flex;flex-direction:column;height:100%">
+    <header>
+      <span class="logo">ממבט ראשון</span>
+      <span id="cloudBadge" class="cloudbadge">מצב מקומי</span>
+    </header>
+
+    <main>
+      <!-- גילוי -->
+      <section id="pgDiscover" class="page">
+        <div id="testBanner" class="banner hidden">
+          <span>השלימו את המבחנים כדי לקבל התאמות מדויקות</span>
+          <button id="bannerGo">למבחנים</button>
+        </div>
+        <div class="deck" id="deck"></div>
+        <div class="actions" id="deckActions">
+          <button class="round nope" id="bNope">✕</button>
+          <button class="round star" id="bSuper">★</button>
+          <button class="round like" id="bLike">♥</button>
+        </div>
+      </section>
+
+      <!-- מבחנים -->
+      <section id="pgTests" class="page hidden">
+        <div class="listwrap">
+          <h2>המבחנים שלך 🧪</h2>
+          <p class="note" style="text-align:start;margin:0 0 6px">ככל שתשלימו יותר מבחנים, ההתאמה של צוות המומחים תהיה מדויקת יותר.</p>
+          <div class="progbar"><i id="testsProg"></i></div>
+          <div id="testsList"></div>
+        </div>
+      </section>
+
+      <!-- מריץ מבחן -->
+      <section id="pgQuiz" class="page hidden">
+        <div class="quiz" id="quizBody"></div>
+      </section>
+
+      <!-- התאמות -->
+      <section id="pgMatches" class="page hidden">
+        <div class="listwrap">
+          <h2>ההתאמות שלך 💞</h2>
+          <div id="matchList"></div>
+        </div>
+      </section>
+
+      <!-- מסע זוגי (42 ימים) -->
+      <section id="pgJourney" class="page hidden">
+        <div class="journey" id="journeyBody"></div>
+      </section>
+
+      <!-- פרופיל -->
+      <section id="pgProfile" class="page hidden">
+        <div class="profile">
+          <div class="avatarbig" id="pfAvatar">🙂</div>
+          <div class="field"><label>שם</label><input id="pfName"></div>
+          <div class="row2">
+            <div class="field"><label>גיל</label><input id="pfAge" type="number" min="18" max="99"></div>
+            <div class="field"><label>מחפש/ת</label>
+              <select id="pfSeek"><option value="נ">נשים</option><option value="ז">גברים</option><option value="הכל">הכל</option></select>
+            </div>
+          </div>
+          <div class="field"><label>קצת עליי</label><textarea id="pfBio" rows="3" placeholder="ספרו משהו על עצמכם…"></textarea></div>
+          <div class="field"><label>בחירת אווטאר</label><div class="emojirow" id="avatarPick"></div></div>
+          <button class="btn" id="btnSaveProfile">שמירת פרופיל</button>
+          <button class="btn secondary" id="btnLogout">התנתקות</button>
+          <div class="field"><label>סנכרון ענן (אופציונלי)</label>
+            <button class="btn secondary" id="btnCloud">חיבור Firebase לחשבונות אמיתיים</button>
+          </div>
+          <p class="note">עובד על כל טלפון ישירות מהדפדפן. לחצו על תפריט השיתוף בדפדפן ובחרו <b>הוספה למסך הבית</b> כדי להתקין כמו אפליקציה.</p>
+        </div>
+      </section>
+    </main>
+
+    <nav class="tabs">
+      <button data-tab="Discover" class="active"><span class="ico">🔥</span>גילוי</button>
+      <button data-tab="Tests"><span class="ico">🧪</span>מבחנים</button>
+      <button data-tab="Matches"><span class="ico">💞</span>התאמות</button>
+      <button data-tab="Profile"><span class="ico">👤</span>פרופיל</button>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast"></div>
+</div>
+
+<script>
+/* ============================================================
+   ממבט ראשון — אפליקציית התאמה מבוססת מבחנים
+   מנוע מבחנים מודולרי: הוספת מבחן = הוספת אובייקט ל-TESTS.
+   ============================================================ */
+
+const AVATARS = ["🙂","😎","🧑‍🎤","👩‍🦰","🧔","👱‍♀️","🦊","🐼","🦁","🐱","🌟","🎸","📚","⚽","🍕","🏔️","💍","🌹"];
+
+/* ---------- מנוע המבחנים ----------
+   כל מבחן: id, title, icon, desc, dims (מימדים), questions.
+   שאלת סקאלה: {q, dim, reverse?}  -> תשובה 1..5
+   כדי להוסיף מבחן חדש בעתיד: פשוט הוסיפו אובייקט כאן.        */
+/* כל מבחן: dimMeta מגדיר לכל מימד את כותרתו ואת אופן ההתאמה:
+   'similar' = ככל שדומים יותר טוב | 'both_high' = עדיף ששניכם גבוהים |
+   'low_good' = עדיף ששניכם נמוכים.
+   פריט עם reverse:true מנוקד הפוך (5→1) כי הניסוח שלילי למימד.
+   הוספת מבחן עתידי = הוספת אובייקט נוסף למערך הזה.                         */
+const TESTS = [
+  {
+    id:"attraction", title:"משיכה ואינטימיות", icon:"🔥",
+    desc:"מה מדליק אותך, קצב ההתקרבות וסגנון החיבה שלך",
+    dimMeta:{
+      physical:{label:"חשיבות משיכה פיזית", mode:"similar"},
+      adventure:{label:"הרפתקנות מינית", mode:"similar"},
+      sociosexual:{label:"פתיחות מינית מוקדמת", mode:"similar"},
+      affection:{label:"צורך בחיבה ומגע", mode:"similar"},
+    },
+    questions:[
+      {q:"משיכה פיזית מיידית היא תנאי הכרחי בשבילי", dim:"physical"},
+      {q:"אני שם/ה לב מהר מאוד אם יש \"ניצוץ\" גופני", dim:"physical"},
+      {q:"המראה החיצוני משחק תפקיד מרכזי במשיכה שלי", dim:"physical"},
+      {q:"אני נהנה/ית להפתיע ולגוון בחיי האינטימיות", dim:"adventure"},
+      {q:"הייתי שמח/ה לנסות חוויות חדשות ונועזות עם בן/בת זוג", dim:"adventure"},
+      {q:"שגרה אינטימית קבועה משעממת אותי", dim:"adventure"},
+      {q:"אני יכול/ה ליהנות ממיניות גם ללא קשר רגשי עמוק", dim:"sociosexual"},
+      {q:"אינטימיות פיזית מוקדמת בקשר מרגישה לי טבעית", dim:"sociosexual"},
+      {q:"אני זקוק/ה לחיבור רגשי עמוק לפני כל אינטימיות", dim:"sociosexual", reverse:true},
+      {q:"מגע יומיומי (חיבוקים, נגיעות) חשוב לי מאוד", dim:"affection"},
+      {q:"אני מבטא/ת חיבה דרך מגע יותר מאשר במילים", dim:"affection"},
+      {q:"אני זקוק/ה להבעות חיבה תכופות כדי להרגיש אהוב/ה", dim:"affection"},
+    ]
+  },
+  {
+    id:"psych", title:"אישיות והתקשרות", icon:"🧠",
+    desc:"מבוסס על חמשת גורמי האישיות (Big Five) וסגנון ההתקשרות שלך",
+    dimMeta:{
+      openness:{label:"פתיחות לחוויה", mode:"similar"},
+      conscientiousness:{label:"מצפוניות וסדר", mode:"similar"},
+      extraversion:{label:"מוחצנות", mode:"similar"},
+      agreeableness:{label:"נעימות וסלחנות", mode:"both_high"},
+      neuroticism:{label:"רגישות רגשית", mode:"low_good"},
+      anxiety:{label:"חרדת נטישה", mode:"low_good"},
+      avoidance:{label:"הימנעות מקרבה", mode:"low_good"},
+    },
+    questions:[
+      {q:"אני אוהב/ת רעיונות חדשים, אמנות וחוויות לא שגרתיות", dim:"openness"},
+      {q:"אני סקרן/ית ואוהב/ת ללמוד דברים חדשים", dim:"openness"},
+      {q:"אני מתכנן/ת מראש ועומד/ת בהתחייבויות שלי", dim:"conscientiousness"},
+      {q:"חשובים לי סדר וארגון בחיי היומיום", dim:"conscientiousness"},
+      {q:"אני נטען/ת אנרגיה מבילוי עם הרבה אנשים", dim:"extraversion"},
+      {q:"אני יוזם/ת שיחות ונהנה/ית להיות במרכז העניינים", dim:"extraversion"},
+      {q:"קל לי להעמיד את צורכי האחר לפני שלי", dim:"agreeableness"},
+      {q:"קל לי לסלוח ולתת אמון באנשים", dim:"agreeableness"},
+      {q:"אני נוטה לדאוג ולהילחץ הרבה", dim:"neuroticism"},
+      {q:"מצב הרוח שלי משתנה בקלות", dim:"neuroticism"},
+      {q:"אני חושש/ת שבן/בת הזוג לא יאהב/תאהב אותי מספיק", dim:"anxiety"},
+      {q:"אני זקוק/ה להרבה אישורים שאני אהוב/ה בקשר", dim:"anxiety"},
+      {q:"קשה לי להיפתח ולהיות תלוי/ה רגשית באחר", dim:"avoidance"},
+      {q:"אני מעדיף/ה לשמור מרחק רגשי גם בקשר קרוב", dim:"avoidance"},
+    ]
+  },
+  {
+    id:"values", title:"ערכים וסגנון חיים", icon:"🧭",
+    desc:"משפחה, מסורת, קריירה, כסף וקצב חיים — מה באמת חשוב לך",
+    dimMeta:{
+      family:{label:"אוריינטציה משפחתית", mode:"similar"},
+      tradition:{label:"מסורת ודת", mode:"similar"},
+      ambition:{label:"שאפתנות וקריירה", mode:"similar"},
+      finance:{label:"יציבות כלכלית", mode:"similar"},
+      social:{label:"חיי חברה", mode:"similar"},
+      health:{label:"אורח חיים בריא", mode:"similar"},
+    },
+    questions:[
+      {q:"הקמת משפחה וילדים היא מטרה מרכזית בחיי", dim:"family"},
+      {q:"אני רוצה לבלות הרבה זמן עם המשפחה המורחבת", dim:"family"},
+      {q:"מסורת ודת תופסות מקום חשוב בחיי", dim:"tradition"},
+      {q:"חשוב לי שבן/בת הזוג יחלוק/תחלוק את ערכיי הדתיים", dim:"tradition"},
+      {q:"הקריירה וההגשמה המקצועית חשובות לי מאוד", dim:"ambition"},
+      {q:"אני שאפתן/ית ומוכן/ה להשקיע הרבה כדי להצליח", dim:"ambition"},
+      {q:"חשובה לי יציבות כלכלית וחיסכון לעתיד", dim:"finance"},
+      {q:"אני נוטה לתכנן את ההוצאות שלי בקפידה", dim:"finance"},
+      {q:"אני אוהב/ת חיי חברה עשירים והרבה יציאות", dim:"social"},
+      {q:"בית פתוח ואירוח חברים חשובים לי", dim:"social"},
+      {q:"אורח חיים בריא, ספורט ותזונה חשובים לי", dim:"health"},
+      {q:"אני מקפיד/ה על כושר ופעילות גופנית סדירה", dim:"health"},
+    ]
+  },
+  // ── מבחנים נוספים יתווספו כאן בהמשך ──
+];
+/* מפת מימד→מטא לחישובים מהירים */
+const DIM_META={}; TESTS.forEach(t=>Object.entries(t.dimMeta).forEach(([d,m])=>DIM_META[d]=m));
+
+const SCALE_LABELS = ["בכלל לא","מעט","בינוני","הרבה","מאוד מאוד"];
+
+/* מועמדים לדוגמה — לכל אחד פרופיל תשובות לכל מבחן (dim -> 1..5) */
+const SEED = [
+  {id:"u_maya", name:"מאיה", age:29, gender:"נ", bio:"קפה, טיולים ובדיחות גרועות.", avatar:"👩‍🦰",
+    scores:{
+      attraction:{physical:4,adventure:5,sociosexual:4,affection:4},
+      psych:{openness:5,conscientiousness:3,extraversion:4,agreeableness:4,neuroticism:3,anxiety:3,avoidance:2},
+      values:{family:4,tradition:2,ambition:4,finance:3,social:5,health:4}}},
+  {id:"u_leo", name:"ליאו", age:33, gender:"ז", bio:"מוזיקאי. אבשל לך ארוחת ערב.", avatar:"🎸",
+    scores:{
+      attraction:{physical:5,adventure:4,sociosexual:3,affection:5},
+      psych:{openness:5,conscientiousness:2,extraversion:5,agreeableness:5,neuroticism:3,anxiety:3,avoidance:2},
+      values:{family:3,tradition:2,ambition:3,finance:2,social:5,health:3}}},
+  {id:"u_sara", name:"שרה", age:26, gender:"נ", bio:"תולעת ספרים מחפשת תפנית בעלילה.", avatar:"📚",
+    scores:{
+      attraction:{physical:2,adventure:2,sociosexual:1,affection:4},
+      psych:{openness:4,conscientiousness:5,extraversion:2,agreeableness:4,neuroticism:2,anxiety:2,avoidance:3},
+      values:{family:5,tradition:3,ambition:3,finance:5,social:2,health:3}}},
+  {id:"u_kai", name:"קאי", age:31, gender:"ז", bio:"הרים מעל הכל.", avatar:"🏔️",
+    scores:{
+      attraction:{physical:3,adventure:5,sociosexual:3,affection:2},
+      psych:{openness:5,conscientiousness:4,extraversion:3,agreeableness:3,neuroticism:2,anxiety:1,avoidance:4},
+      values:{family:2,tradition:1,ambition:5,finance:4,social:3,health:5}}},
+  {id:"u_nina", name:"נינה", age:27, gender:"נ", bio:"מומחית פיצה 🍕 בואו להתווכח.", avatar:"🍕",
+    scores:{
+      attraction:{physical:4,adventure:3,sociosexual:3,affection:5},
+      psych:{openness:4,conscientiousness:4,extraversion:5,agreeableness:5,neuroticism:3,anxiety:3,avoidance:1},
+      values:{family:4,tradition:3,ambition:3,finance:3,social:5,health:2}}},
+  {id:"u_omar", name:"עומר", age:34, gender:"ז", bio:"כדורגל בסופ\"ש, רוגע באמצע.", avatar:"⚽",
+    scores:{
+      attraction:{physical:3,adventure:3,sociosexual:2,affection:3},
+      psych:{openness:3,conscientiousness:5,extraversion:4,agreeableness:4,neuroticism:1,anxiety:2,avoidance:2},
+      values:{family:5,tradition:4,ambition:4,finance:5,social:4,health:5}}},
+  {id:"u_zoe", name:"זואי", age:28, gender:"נ", bio:"אמא של חתול 🐱 כולל סרקזם.", avatar:"🐱",
+    scores:{
+      attraction:{physical:5,adventure:4,sociosexual:4,affection:3},
+      psych:{openness:5,conscientiousness:3,extraversion:3,agreeableness:3,neuroticism:4,anxiety:4,avoidance:3},
+      values:{family:2,tradition:1,ambition:5,finance:3,social:4,health:3}}},
+  {id:"u_finn", name:"פין", age:30, gender:"ז", bio:"שקיעות, טיולים ופלייליסטים טובים.", avatar:"😎",
+    scores:{
+      attraction:{physical:4,adventure:4,sociosexual:3,affection:4},
+      psych:{openness:4,conscientiousness:4,extraversion:4,agreeableness:4,neuroticism:2,anxiety:2,avoidance:2},
+      values:{family:4,tradition:2,ambition:4,finance:4,social:4,health:4}}},
+];
+const CARD_COLORS = ["#7d3c98","#1f618d","#117864","#9a4413","#6c3483","#1a5276","#797d1b","#7b241c"];
+
+/* ---------- אחסון ---------- */
+const Store = {
+  cloud:false, uid:null,
+  k(s){ return "mbr_"+s; },
+  lsGet(s,d){ try{ return JSON.parse(localStorage.getItem(this.k(s))) ?? d; }catch{ return d; } },
+  lsSet(s,v){ localStorage.setItem(this.k(s), JSON.stringify(v)); },
+};
+
+let ME=null, SWIPES={}, MATCHES=[], RESULTS={}, JOURNEYS={}, deckQueue=[];
+let quizState=null;
+
+/* שלבי המסע הזוגי (כמו בתוכנית) */
+const STAGES=[
+  {key:"wedding", icon:"💍", day:0,  title:"חופה סמלית", desc:"נפגשתם לראשונה מתחת לחופה. טקס סמלי, התחלה חדשה."},
+  {key:"honeymoon", icon:"✈️", day:3, title:"ירח דבש", desc:"שלושה ימים בחו\"ל להכיר אחד את השנייה הרחק מהשגרה."},
+  {key:"living", icon:"🏠", day:7, title:"גרים יחד", desc:"חזרתם ועברתם לגור תחת קורת גג אחת. כאן מתחיל האמת."},
+  {key:"meetup", icon:"🥂", day:21, title:"מפגש הזוגות", desc:"נפגשתם עם שאר הזוגות והשוויתם לראשונה."},
+  {key:"decision", icon:"⚖️", day:42, title:"יום ההחלטה", desc:"חלפו 42 יום. הגיע הרגע להחליט — ממשיכים יחד או נפרדים?"},
+];
+
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1700); }
+function show(id){ $(id).classList.remove("hidden"); }
+function hide(id){ $(id).classList.add("hidden"); }
+
+/* ============================================================
+   שכבת נתונים (DB) — שני מנועים מאחורי ממשק אחיד:
+   LocalDB (localStorage, דמו) ו-CloudDB (Firebase Auth+Firestore).
+   כל שאר האפליקציה מדברת רק עם DB, ולא יודעת באיזה מנוע מדובר.
+   ============================================================ */
+let DB=null;            // נקבע באתחול
+let PEOPLE={};          // id -> אובייקט אדם (מועמדים + התאמות)
+function hashId(s){ let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))|0; return Math.abs(h); }
+
+/* ---------- מנוע מקומי (דמו, ללא שרת) ---------- */
+const LocalDB={
+  cloud:false, email:null,
+  _u(){ return Store.lsGet("users",{}); }, _s(u){ Store.lsSet("users",u); },
+  async signUp(d){
+    const email=d.email.trim().toLowerCase();
+    if(!d.name.trim()||!email||d.pass.length<4) throw new Error("מלאו את כל השדות (סיסמה 4+ תווים).");
+    const u=this._u(); if(u[email]) throw new Error("כבר קיים חשבון עם האימייל הזה.");
+    const uid="me_"+Date.now();
+    u[email]={uid,email,pass:d.pass,
+      profile:{id:uid,name:d.name.trim(),age:parseInt(d.age)||25,gender:d.gender,seek:d.seek,bio:"",avatar:"🙂"},results:{}};
+    this._s(u); Store.lsSet("session",email); this.email=email; Store.uid=uid;
+    return {uid,profile:u[email].profile,results:{}};
+  },
+  async logIn(email,pass){ email=email.trim().toLowerCase(); const u=this._u()[email];
+    if(!u||u.pass!==pass) throw new Error("אימייל או סיסמה שגויים.");
+    Store.lsSet("session",email); this.email=email; Store.uid=u.uid;
+    return {uid:u.uid,profile:u.profile,results:u.results||{}}; },
+  async autoSession(){ const e=Store.lsGet("session",null); const u=e&&this._u()[e]; if(!u) return null;
+    this.email=e; Store.uid=u.uid; return {uid:u.uid,profile:u.profile,results:u.results||{}}; },
+  async logOut(){ localStorage.removeItem(Store.k("session")); this.email=null; },
+  async saveProfile(p){ const u=this._u(); if(u[this.email]){ u[this.email].profile=p; this._s(u);} },
+  async saveResults(r){ const u=this._u(); if(u[this.email]){ u[this.email].results=r; this._s(u);} },
+  async getCandidates(me){ const sw=Store.lsGet("swipes_"+Store.uid,{});
+    return SEED.filter(s=>!sw[s.id]).filter(s=> me.seek==="הכל"||s.gender===me.seek); },
+  async recordSwipe(targetId,verdict,comp){
+    const sw=Store.lsGet("swipes_"+Store.uid,{}); sw[targetId]=verdict; Store.lsSet("swipes_"+Store.uid,sw);
+    const m=Store.lsGet("matches_"+Store.uid,{});
+    if((verdict==="like"||verdict==="super") && !m[targetId]){
+      const chance=comp!=null?0.35+comp/200:0.5;
+      if(Math.random()<chance){
+        m[targetId]={start:Date.now(),stage:0,decision:null,partnerStay:Math.random()<((comp!=null?comp:50)/100)};
+        Store.lsSet("matches_"+Store.uid,m);
+        return {matched:true,person:SEED.find(s=>s.id===targetId),journey:m[targetId]};
+      }
+    }
+    return {matched:false};
+  },
+  async getMatches(){ const m=Store.lsGet("matches_"+Store.uid,{});
+    return Object.keys(m).map(id=>({person:SEED.find(s=>s.id===id),journey:m[id]})).filter(x=>x.person); },
+  async setJourney(targetId,patch){ const m=Store.lsGet("matches_"+Store.uid,{});
+    if(!m[targetId]) return; Object.assign(m[targetId],patch); Store.lsSet("matches_"+Store.uid,m); },
+};
+
+/* ---------- מנוע ענן (Firebase) — נבנה ב-tryCloudInit ---------- */
+function makeCloudDB(auth, db, A, F){
+  return {
+    cloud:true, uid:null,
+    _toPerson(id,u){ return {id,name:u.name,age:u.age,gender:u.gender,bio:u.bio||"",avatar:u.avatar||"🙂",scores:u.results||{}}; },
+    async _loadSelf(){ const s=await F.getDoc(F.doc(db,"users",this.uid)); const data=s.exists()?s.data():{};
+      const {results,createdAt,...profile}=data; profile.id=this.uid; return {uid:this.uid,profile,results:results||{}}; },
+    async _mySwipes(){ const s=await F.getDoc(F.doc(db,"swipes",this.uid)); return (s.exists()&&s.data().targets)||{}; },
+    async signUp(d){
+      const email=d.email.trim().toLowerCase();
+      if(!d.name.trim()||!email||d.pass.length<4) throw new Error("מלאו את כל השדות (סיסמה 4+ תווים).");
+      const cred=await A.createUserWithEmailAndPassword(auth,email,d.pass);
+      this.uid=cred.user.uid; Store.uid=this.uid;
+      const profile={id:this.uid,name:d.name.trim(),age:parseInt(d.age)||25,gender:d.gender,seek:d.seek,bio:"",avatar:"🙂"};
+      await F.setDoc(F.doc(db,"users",this.uid),{...profile,results:{},createdAt:Date.now()});
+      return {uid:this.uid,profile,results:{}};
+    },
+    async logIn(email,pass){ const cred=await A.signInWithEmailAndPassword(auth,email.trim().toLowerCase(),pass);
+      this.uid=cred.user.uid; Store.uid=this.uid; return this._loadSelf(); },
+    async autoSession(){ if(!auth.currentUser) return null; this.uid=auth.currentUser.uid; Store.uid=this.uid; return this._loadSelf(); },
+    async logOut(){ await A.signOut(auth); this.uid=null; },
+    async saveProfile(p){ await F.updateDoc(F.doc(db,"users",this.uid),{name:p.name,age:p.age,gender:p.gender,seek:p.seek,bio:p.bio,avatar:p.avatar}); },
+    async saveResults(r){ await F.updateDoc(F.doc(db,"users",this.uid),{results:r}); },
+    async getCandidates(me){
+      const sw=await this._mySwipes();
+      const snap=await F.getDocs(F.collection(db,"users")); const out=[];
+      snap.forEach(docu=>{ if(docu.id===this.uid||sw[docu.id]) return; const u=docu.data();
+        if(me.seek!=="הכל" && u.gender!==me.seek) return;
+        out.push(this._toPerson(docu.id,u)); });
+      return out;
+    },
+    async recordSwipe(targetId,verdict){
+      await F.setDoc(F.doc(db,"swipes",this.uid),{targets:{[targetId]:verdict}},{merge:true});
+      if(verdict!=="like"&&verdict!=="super") return {matched:false};
+      const theirs=await F.getDoc(F.doc(db,"swipes",targetId));
+      const tv=theirs.exists()? (theirs.data().targets||{})[this.uid] : null;
+      if(tv==="like"||tv==="super"){
+        const pairId=[this.uid,targetId].sort().join("_"); const start=Date.now();
+        await F.setDoc(F.doc(db,"matches",pairId),{users:[this.uid,targetId],start,
+          stage:{[this.uid]:0,[targetId]:0}, decision:{[this.uid]:null,[targetId]:null}},{merge:true});
+        const us=await F.getDoc(F.doc(db,"users",targetId));
+        return {matched:true, person:this._toPerson(targetId,us.exists()?us.data():{}),
+          journey:{start,stage:0,decision:null,partnerStay:false,mid:pairId}};
+      }
+      return {matched:false};
+    },
+    async getMatches(){
+      const snap=await F.getDocs(F.query(F.collection(db,"matches"),F.where("users","array-contains",this.uid)));
+      const res=[];
+      for(const d of snap.docs){ const m=d.data(); const otherId=m.users.find(u=>u!==this.uid);
+        const us=await F.getDoc(F.doc(db,"users",otherId)); if(!us.exists()) continue;
+        res.push({person:this._toPerson(otherId,us.data()),
+          journey:{start:m.start, stage:(m.stage||{})[this.uid]||0, decision:(m.decision||{})[this.uid]||null,
+            partnerStay:((m.decision||{})[otherId])==="stay", mid:d.id}}); }
+      return res;
+    },
+    async setJourney(targetId,patch){
+      const pairId=[this.uid,targetId].sort().join("_"); const upd={};
+      if(patch.stage!=null) upd["stage."+this.uid]=patch.stage;
+      if(patch.decision!=null) upd["decision."+this.uid]=patch.decision;
+      if(Object.keys(upd).length) await F.updateDoc(F.doc(db,"matches",pairId),upd);
+    },
+  };
+}
+
+/* ---------- חיבור הקשר למשתמש ---------- */
+function applyCtx(ctx){ ME=ctx.profile; RESULTS=ctx.results||{}; Store.uid=ctx.uid; }
+async function logout(){
+  try{ await DB.logOut(); }catch(e){}
+  ME=null; SWIPES={}; MATCHES=[]; RESULTS={}; JOURNEYS={}; PEOPLE={};
+  hide("#mainApp"); show("#authScreen"); hide("#loginScreen");
+}
+
+/* ---------- חישוב התאמה ---------- */
+// ציון התאמה למימד בודד (0..1) לפי אופן ההתאמה שלו
+function dimScore(mode,a,b){
+  const mean=(a+b)/2;
+  if(mode==="both_high") return (mean-1)/4;        // עדיף ששניכם גבוהים
+  if(mode==="low_good")  return 1-(mean-1)/4;       // עדיף ששניכם נמוכים
+  return 1-Math.abs(a-b)/4;                          // similar: ככל שדומים יותר טוב
+}
+// אחוז התאמה כולל על פני כל המבחנים שהושלמו
+function compatibility(otherScores){
+  let sum=0, n=0;
+  TESTS.forEach(t=>{
+    const mine=RESULTS[t.id], theirs=otherScores[t.id];
+    if(!mine||!theirs) return;
+    Object.entries(t.dimMeta).forEach(([dim,meta])=>{
+      if(mine[dim]!=null && theirs[dim]!=null){ sum+=dimScore(meta.mode,mine[dim],theirs[dim]); n++; }
+    });
+  });
+  if(n===0) return null;
+  return Math.round((sum/n)*100);
+}
+function testsDone(){ return TESTS.filter(t=>RESULTS[t.id]).length; }
+
+/* ---------- כניסה לאפליקציה ---------- */
+async function enterApp(){
+  hide("#authScreen"); hide("#loginScreen"); show("#mainApp");
+  fillProfileForm(); buildAvatarPicker(); renderTests();
+  switchTab("Discover");
+  await buildDeck(); await loadMatches();
+}
+
+async function buildDeck(){
+  try{
+    deckQueue=(await DB.getCandidates(ME)).slice();
+    deckQueue.forEach(p=>PEOPLE[p.id]=p);
+    deckQueue.reverse();
+  }catch(e){ console.warn("getCandidates",e); deckQueue=[]; }
+  renderDeck();
+}
+
+async function loadMatches(){
+  try{
+    const ms=await DB.getMatches(); MATCHES=[];
+    ms.forEach(({person,journey})=>{ PEOPLE[person.id]=person; MATCHES.push(person.id); JOURNEYS[person.id]=journey; });
+  }catch(e){ console.warn("getMatches",e); }
+  renderMatches();
+}
+
+function renderDeck(){
+  const deck=$("#deck"); deck.innerHTML="";
+  $("#testBanner").classList.toggle("hidden", testsDone()>0);
+  if(deckQueue.length===0){
+    deck.innerHTML=`<div class="empty"><div class="big">🎉</div><b>סיימת את כולם!</b><p>אין כרגע אנשים נוספים. חזרו מאוחר יותר.</p></div>`;
+    $("#deckActions").style.visibility="hidden"; return;
+  }
+  $("#deckActions").style.visibility="visible";
+  deckQueue.slice(-3).forEach((p,i,arr)=>{
+    const top=i===arr.length-1;
+    const idx=hashId(p.id);
+    const comp=compatibility(p.scores);
+    const pill = comp!=null
+      ? `<div class="matchpill">💎 ${comp}% התאמה לפי צוות המומחים</div>`
+      : `<div class="matchpill">🧪 השלימו מבחנים לחישוב התאמה</div>`;
+    const el=document.createElement("div"); el.className="swipecard";
+    const depth=arr.length-1-i;
+    el.style.transform=`scale(${1-depth*0.04}) translateY(${depth*10}px)`; el.style.zIndex=i;
+    el.innerHTML=`
+      <div class="photo" style="background:linear-gradient(160deg,${CARD_COLORS[idx%CARD_COLORS.length]},#160a10)">${p.avatar}</div>
+      <div class="grad"></div>
+      <div class="stamp like">אהבתי</div><div class="stamp nope">לא</div>
+      <div class="info">${pill}<h2>${p.name} <span class="age">${p.age}</span></h2><p>${p.bio}</p></div>`;
+    deck.appendChild(el);
+    if(top) makeDraggable(el,p);
+  });
+}
+
+function makeDraggable(el,person){
+  let sx=0,dx=0,dy=0,drag=false;
+  const like=el.querySelector(".stamp.like"), nope=el.querySelector(".stamp.nope");
+  const down=e=>{ drag=true; const t=e.touches?e.touches[0]:e; sx=t.clientX; el.style.transition="none"; };
+  const move=e=>{ if(!drag) return; const t=e.touches?e.touches[0]:e; dx=t.clientX-sx;
+    el.style.transform=`translateX(${dx}px) rotate(${dx/18}deg)`;
+    like.style.opacity=Math.max(0,dx/120); nope.style.opacity=Math.max(0,-dx/120);
+    if(e.cancelable) e.preventDefault(); };
+  const up=()=>{ if(!drag) return; drag=false; el.style.transition="transform .35s ease,opacity .35s ease";
+    if(dx>110){ fly(el,1); decide(person,"like"); }
+    else if(dx<-110){ fly(el,-1); decide(person,"nope"); }
+    else { el.style.transform=""; like.style.opacity=0; nope.style.opacity=0; } };
+  el.addEventListener("touchstart",down,{passive:true});
+  el.addEventListener("touchmove",move,{passive:false});
+  el.addEventListener("touchend",up);
+  el.addEventListener("mousedown",down); window.addEventListener("mousemove",move); window.addEventListener("mouseup",up);
+}
+function fly(el,dir){ el.style.transform=`translateX(${dir*600}px) rotate(${dir*40}deg)`; el.style.opacity=0; }
+
+async function decide(person,verdict){
+  deckQueue=deckQueue.filter(p=>p.id!==person.id);
+  setTimeout(renderDeck,360);
+  const comp=compatibility(person.scores);
+  try{
+    const r=await DB.recordSwipe(person.id,verdict,comp);
+    if(r&&r.matched){
+      PEOPLE[person.id]=r.person||person;
+      if(!MATCHES.includes(person.id)) MATCHES.push(person.id);
+      JOURNEYS[person.id]=r.journey;
+      renderMatches();
+      showMatchPopup(PEOPLE[person.id],comp);
+    }
+  }catch(e){ console.warn("recordSwipe",e); toast("שגיאה בשמירה — בדקו חיבור"); }
+}
+
+function showMatchPopup(person,comp){
+  const m=document.createElement("div"); m.className="modal";
+  m.innerHTML=`<div class="faces">${ME.avatar} ${person.avatar}</div>
+    <h1>יש התאמה!</h1>
+    ${comp!=null?`<div class="bigscore">${comp}%</div><p style="color:#e8cdd9;margin:0">צוות המומחים קבע: אתם מתאימים</p>`:`<p style="color:#e8cdd9;margin:0">את/ה ו${person.name} אהבתם זה את זה</p>`}
+    <button class="btn" style="max-width:240px">ממשיכים להחליק</button>
+    <button class="link">לשלוח הודעה</button>`;
+  $("#mainApp").appendChild(m);
+  m.querySelector(".btn").onclick=()=>m.remove();
+  m.querySelector(".link").onclick=()=>{ m.remove(); switchTab("Matches"); };
+}
+
+function renderMatches(){
+  const list=$("#matchList");
+  if(MATCHES.length===0){ list.innerHTML=`<div class="empty" style="padding:40px 10px"><div class="big">💘</div><b>אין התאמות עדיין</b><p>התחילו להחליק במסך הגילוי.</p></div>`; return; }
+  list.innerHTML="";
+  MATCHES.forEach(id=>{
+    const p=PEOPLE[id]; if(!p) return;
+    const comp=compatibility(p.scores);
+    const j=JOURNEYS[id]; const st=STAGES[j?j.stage:0];
+    let sub=`${st.icon} ${st.title}`;
+    if(j&&j.decision==="stay"&&j.partnerStay) sub="💞 ביחד!";
+    else if(j&&j.decision) sub="💔 נפרדתם";
+    const row=document.createElement("div"); row.className="match";
+    row.innerHTML=`<div class="av">${p.avatar}</div>
+      <div class="meta"><b>${p.name}, ${p.age}</b><span>${sub}</span></div>
+      ${comp!=null?`<div class="score">${comp}%</div>`:""}`;
+    row.onclick=()=>openJourney(id);
+    list.appendChild(row);
+  });
+}
+
+/* חוות דעת צוות המומחים — מבוססת על ציון ההתאמה בכל מימד */
+function expertVerdict(person){
+  const comp=compatibility(person.scores);
+  if(comp==null) return "השלימו את המבחנים כדי שצוות המומחים יוכל לנתח את ההתאמה ביניכם.";
+  const strong=[], gaps=[];
+  TESTS.forEach(t=>{ const mine=RESULTS[t.id], th=person.scores[t.id]; if(!mine||!th) return;
+    Object.entries(t.dimMeta).forEach(([d,meta])=>{ if(mine[d]==null||th[d]==null) return;
+      const s=dimScore(meta.mode,mine[d],th[d]);
+      if(s>=0.8) strong.push(meta.label);
+      else if(s<=0.45) gaps.push(meta.label); }); });
+  let txt=`<b>הערכת צוות המומחים: ${comp}% התאמה.</b><br>`;
+  if(comp>=75) txt+=`זוהי התאמה גבוהה במיוחד. `;
+  else if(comp>=55) txt+=`יש כאן בסיס טוב לזוגיות. `;
+  else txt+=`התאמה מאתגרת, אבל לפעמים דווקא ההפכים נמשכים. `;
+  if(strong.length) txt+=`אתם מסונכרנים במיוחד ב: ${[...new Set(strong)].slice(0,3).join(", ")}. `;
+  if(gaps.length) txt+=`כדאי לשים לב לפערים ב: ${[...new Set(gaps)].slice(0,2).join(", ")} — שם תידרש עבודה משותפת.`;
+  return txt;
+}
+
+/* ---------- מסע זוגי ---------- */
+async function openJourney(id){
+  JOURNEYS.__open=id; switchTab("Journey"); renderJourney();
+  await loadMatches();                 // רענון כדי לקבל את החלטת הצד השני מהענן
+  if(JOURNEYS.__open===id) renderJourney();
+}
+function renderJourney(){
+  const id=JOURNEYS.__open; const p=PEOPLE[id]; const j=JOURNEYS[id];
+  if(!p||!j){ switchTab("Matches"); return; }
+  const elapsedDays=Math.floor((Date.now()-j.start)/86400000);
+  const dayShown=Math.min(42, Math.max(elapsedDays, STAGES[j.stage].day));
+  const atDecision=j.stage>=STAGES.length-1;
+  const body=$("#journeyBody");
+  let stagesHtml="";
+  STAGES.forEach((s,i)=>{
+    const cls=i<j.stage?"done":(i===j.stage?"cur":"locked");
+    stagesHtml+=`<div class="stage ${cls}"><div class="rail"><div class="bullet">${i<j.stage?"✓":s.icon}</div>${i<STAGES.length-1?'<div class="line"></div>':''}</div>
+      <div class="sbody"><b>${s.title}</b><p>יום ${s.day} · ${s.desc}</p></div></div>`;
+  });
+  let footer="";
+  if(j.decision){
+    const together = j.decision==="stay" && j.partnerStay;
+    footer = together
+      ? `<div class="outcome together">💞 החלטתם להמשיך — ו${p.name} בחר/ה בכם גם! אתם זוג.</div>`
+      : (j.decision==="stay"
+          ? `<div class="outcome apart">💔 בחרתם להמשיך, אבל ${p.name} בחר/ה להיפרד. לפעמים זה לא הדדי.</div>`
+          : `<div class="outcome apart">💔 בחרתם להיפרד. תודה על המסע המשותף.</div>`);
+  } else if(atDecision){
+    footer=`<div class="decision"><button class="stay" id="decStay">ממשיכים יחד 💞</button><button class="leave" id="decLeave">נפרדים 💔</button></div>`;
+  } else {
+    footer=`<button class="btn gold" id="advBtn">התקדמו לשלב הבא ←</button>
+      <p class="note">בתוכנית כל שלב נמשך ימים. כאן אפשר להתקדם בקצב שלכם עד יום ההחלטה.</p>`;
+  }
+  body.innerHTML=`
+    <div class="jhead"><button class="back" id="jBack">→</button><b>המסע שלכם</b></div>
+    <div class="jhero"><div class="faces">${ME.avatar} ${p.avatar}</div>
+      <h2>${ME.name} & ${p.name}</h2><div class="day">יום ${dayShown} מתוך 42</div></div>
+    <div class="verdict">${expertVerdict(p)}</div>
+    <div class="stages">${stagesHtml}</div>
+    ${footer}`;
+  $("#jBack").onclick=()=>switchTab("Matches");
+  const adv=$("#advBtn"); if(adv) adv.onclick=async()=>{ j.stage=Math.min(STAGES.length-1,j.stage+1); renderJourney(); try{ await DB.setJourney(id,{stage:j.stage}); }catch(e){console.warn(e);} };
+  const ds=$("#decStay"); if(ds) ds.onclick=()=>decide_journey(id,"stay");
+  const dl=$("#decLeave"); if(dl) dl.onclick=()=>decide_journey(id,"leave");
+}
+async function decide_journey(id,choice){
+  JOURNEYS[id].decision=choice; renderJourney(); renderMatches();
+  try{ await DB.setJourney(id,{decision:choice}); }catch(e){ console.warn(e); toast("שגיאה בשמירה"); }
+}
+
+/* ---------- מבחנים ---------- */
+function renderTests(){
+  const list=$("#testsList"); list.innerHTML="";
+  TESTS.forEach(t=>{
+    const done=!!RESULTS[t.id];
+    const c=document.createElement("div"); c.className="testcard";
+    c.innerHTML=`<div class="tico">${t.icon}</div>
+      <div class="tmeta"><b>${t.title}</b><p>${t.desc}</p></div>
+      <div class="${done?'badge-done':'badge-todo'}">${done?'✓ הושלם':'להתחיל'}</div>`;
+    c.onclick=()=>startQuiz(t.id);
+    list.appendChild(c);
+  });
+  $("#testsProg").style.width = (testsDone()/TESTS.length*100)+"%";
+  // נקודת התראה על הטאב
+  const tab=$('#mainApp nav.tabs button[data-tab="Tests"]');
+  let dot=tab.querySelector(".dot");
+  if(testsDone()<TESTS.length){ if(!dot){ dot=document.createElement("span"); dot.className="dot"; tab.appendChild(dot);} }
+  else if(dot) dot.remove();
+}
+
+function startQuiz(testId){
+  const test=TESTS.find(t=>t.id===testId);
+  quizState={test, i:0, answers:{...(RESULTS[testId]?{}:{})} , raw:{}};
+  // אם כבר הושלם — נאפשר מענה מחדש מאפס
+  quizState.raw={};
+  switchTab("Quiz"); renderQuiz();
+}
+function renderQuiz(){
+  const {test,i}=quizState;
+  const q=test.questions[i];
+  const body=$("#quizBody");
+  body.innerHTML=`
+    <div class="qtop">
+      <button class="back" id="quizBack">→</button>
+      <span class="qcount">${test.icon} ${test.title} · שאלה ${i+1} מתוך ${test.questions.length}</span>
+    </div>
+    <div class="progbar"><i style="width:${(i)/test.questions.length*100}%"></i></div>
+    <div class="qtext">${q.q}</div>
+    <div class="scale" id="scaleBox"></div>`;
+  const box=$("#scaleBox");
+  SCALE_LABELS.forEach((lbl,idx)=>{
+    const b=document.createElement("button"); b.textContent=`${idx+1} · ${lbl}`;
+    b.onclick=()=>answerQuiz(idx+1);
+    box.appendChild(b);
+  });
+  $("#quizBack").onclick=()=>{
+    if(quizState.i>0){ quizState.i--; renderQuiz(); }
+    else switchTab("Tests");
+  };
+}
+function answerQuiz(val){
+  const {test,i}=quizState;
+  const q=test.questions[i];
+  const adj=q.reverse ? (6-val) : val;   // ניקוד הפוך לפריטים שליליים
+  quizState.raw[i]={dim:q.dim, val:adj};
+  if(i+1<test.questions.length){ quizState.i++; renderQuiz(); }
+  else finishQuiz();
+}
+function finishQuiz(){
+  const {test,raw}=quizState;
+  // ממוצע לכל מימד
+  const byDim={}; const cnt={};
+  Object.values(raw).forEach(a=>{ byDim[a.dim]=(byDim[a.dim]||0)+a.val; cnt[a.dim]=(cnt[a.dim]||0)+1; });
+  const result={}; Object.keys(test.dimMeta).forEach(d=>{ result[d]=cnt[d]?+(byDim[d]/cnt[d]).toFixed(2):3; });
+  RESULTS[test.id]=result;
+  DB.saveResults(RESULTS).catch(e=>console.warn("saveResults",e));
+  renderTests(); buildDeck();
+  const m=document.createElement("div"); m.className="modal";
+  m.innerHTML=`<div class="faces">${test.icon}</div><h1>המבחן הושלם!</h1>
+    <p style="color:#e8cdd9;margin:0">התוצאות נשמרו. צוות המומחים מעדכן את ההתאמות שלך.</p>
+    <button class="btn" style="max-width:240px">חזרה למבחנים</button>`;
+  $("#mainApp").appendChild(m);
+  m.querySelector(".btn").onclick=()=>{ m.remove(); switchTab(testsDone()<TESTS.length?"Tests":"Discover"); };
+}
+
+/* ---------- פרופיל ---------- */
+function fillProfileForm(){
+  $("#pfName").value=ME.name||""; $("#pfAge").value=ME.age||25;
+  $("#pfBio").value=ME.bio||""; $("#pfAvatar").textContent=ME.avatar||"🙂";
+  $("#pfSeek").value=ME.seek||"הכל";
+}
+function buildAvatarPicker(){
+  const wrap=$("#avatarPick"); wrap.innerHTML="";
+  AVATARS.forEach(a=>{
+    const b=document.createElement("button"); b.textContent=a;
+    if(a===ME.avatar) b.classList.add("sel");
+    b.onclick=()=>{ ME.avatar=a; $$("#avatarPick button").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); $("#pfAvatar").textContent=a; };
+    wrap.appendChild(b);
+  });
+}
+function saveProfile(){
+  ME.name=$("#pfName").value.trim()||ME.name;
+  ME.age=parseInt($("#pfAge").value)||ME.age;
+  ME.bio=$("#pfBio").value.trim(); ME.seek=$("#pfSeek").value;
+  DB.saveProfile(ME).then(()=>toast("הפרופיל נשמר ✓")).catch(e=>{console.warn(e);toast("שגיאה בשמירה");});
+  buildDeck();
+}
+
+/* ---------- טאבים ---------- */
+function switchTab(name){
+  $$("#mainApp nav.tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));
+  ["Discover","Tests","Quiz","Matches","Journey","Profile"].forEach(p=>hide("#pg"+p));
+  show("#pg"+name);
+  if(name==="Tests") renderTests();
+}
+
+/* ---------- Firebase (אופציונלי) ---------- */
+function connectFirebase(){
+  const sample=`{
+  "apiKey":"...","authDomain":"app.firebaseapp.com",
+  "projectId":"app","appId":"..."
+}`;
+  const cfg=prompt("הדביקו את ה-Firebase web config (JSON) להפעלת חשבונות אמיתיים וסנכרון בין מכשירים.\n\nמשיגים בחינם ב-console.firebase.google.com ← Project settings.\n\n"+sample);
+  if(!cfg) return;
+  try{ JSON.parse(cfg); Store.lsSet("fbconfig",JSON.parse(cfg)); toast("נשמר. טוען מחדש במצב ענן…"); setTimeout(()=>location.reload(),900); }
+  catch(e){ alert("ה-JSON לא תקין. נסו שוב."); }
+}
+async function tryCloudInit(){
+  const cfg=Store.lsGet("fbconfig",null);
+  if(!cfg){ $("#cloudBadge").textContent="מצב מקומי (דמו)"; return; }
+  try{
+    const appMod=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const A=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+    const F=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+    const app=appMod.initializeApp(cfg);
+    const auth=A.getAuth(app); const db=F.getFirestore(app);
+    DB=makeCloudDB(auth,db,A,F); Store.cloud=true;
+    const b=$("#cloudBadge"); b.textContent="☁ מאגר אמיתי פעיל"; b.classList.add("on");
+    // ממתינים למצב התחברות ראשוני (התחברות נשמרת בין רענונים)
+    await new Promise(res=>{ const un=A.onAuthStateChanged(auth,()=>{ un(); res(); }); });
+  }catch(e){ console.warn("cloud init failed, fallback local",e); $("#cloudBadge").textContent="מצב מקומי (דמו)"; DB=LocalDB; }
+}
+
+/* תרגום שגיאות Firebase נפוצות לעברית */
+function fbErr(e){
+  const c=(e&&e.code)||"";
+  if(c.includes("email-already-in-use")) return "כבר קיים חשבון עם האימייל הזה.";
+  if(c.includes("invalid-email")) return "כתובת אימייל לא תקינה.";
+  if(c.includes("weak-password")) return "הסיסמה חלשה מדי (6+ תווים).";
+  if(c.includes("invalid-credential")||c.includes("wrong-password")||c.includes("user-not-found")) return "אימייל או סיסמה שגויים.";
+  if(c.includes("network")) return "אין חיבור לרשת.";
+  return (e&&e.message)||"אירעה שגיאה. נסו שוב.";
+}
+
+/* ---------- חיווט ---------- */
+function bind(){
+  $("#btnSignup").onclick=async()=>{ const btn=$("#btnSignup"); btn.disabled=true; try{ $("#auErr").textContent="";
+    const ctx=await DB.signUp({name:$("#auName").value, age:$("#auAge").value, gender:$("#auGender").value, seek:$("#auSeek").value,
+      email:$("#auEmail").value, pass:$("#auPass").value });
+    applyCtx(ctx); await enterApp(); }
+    catch(e){ $("#auErr").textContent=fbErr(e); } finally{ btn.disabled=false; } };
+  $("#btnLogin").onclick=async()=>{ const btn=$("#btnLogin"); btn.disabled=true; try{ $("#liErr").textContent="";
+    const ctx=await DB.logIn($("#liEmail").value,$("#liPass").value); applyCtx(ctx); await enterApp(); }
+    catch(e){ $("#liErr").textContent=fbErr(e); } finally{ btn.disabled=false; } };
+  $("#btnToLogin").onclick=()=>{ hide("#authScreen"); show("#loginScreen"); };
+  $("#btnToSignup").onclick=()=>{ show("#authScreen"); hide("#loginScreen"); };
+  $("#btnLogout").onclick=logout;
+  $("#btnSaveProfile").onclick=saveProfile;
+  $("#btnCloud").onclick=connectFirebase;
+  $("#bannerGo").onclick=()=>switchTab("Tests");
+  $("#bNope").onclick=()=>swipeBtn("nope");
+  $("#bLike").onclick=()=>swipeBtn("like");
+  $("#bSuper").onclick=()=>swipeBtn("super");
+  $$("#mainApp nav.tabs button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+}
+function swipeBtn(verdict){
+  if(deckQueue.length===0) return;
+  const person=deckQueue[deckQueue.length-1];
+  const el=$("#deck").querySelector(".swipecard:last-child");
+  if(el){ el.style.transition="transform .35s ease,opacity .35s ease"; fly(el,verdict==="nope"?-1:1); }
+  decide(person,verdict);
+}
+
+/* ---------- אתחול ---------- */
+(async function boot(){
+  bind();
+  DB=LocalDB;                 // ברירת מחדל
+  await tryCloudInit();       // יחליף ל-CloudDB אם יש הגדרות Firebase
+  try{
+    const ctx=await DB.autoSession();
+    if(ctx){ applyCtx(ctx); await enterApp(); return; }
+  }catch(e){ console.warn("autoSession",e); }
+  show("#authScreen");
+})();
+</script>
+</body>
+</html>
